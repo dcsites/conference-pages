@@ -31,7 +31,10 @@ class Admin extends Core {
         // Create an options page for the plugin
         add_action( 'admin_init', [ $this, 'init' ] );
         add_action( 'admin_menu', [ $this, 'add_options_page' ] );
-        add_action( 'cmb2_admin_init',  [ $this, 'add_options_metaboxes' ] );
+        add_action( 'cmb2_admin_init',  [ $this, 'add_cmb2_boxes' ] );
+
+        add_filter( 'wp_unique_post_slug', [ $this, 'filter_unique_post_slug' ], 10, 4 );
+        add_filter( 'editable_slug',  [ $this, 'filter_editable_slug' ], 10, 2 );
 	}
 
     /**
@@ -48,6 +51,11 @@ class Admin extends Core {
      */
     public function add_options_page() {
         add_options_page( $this->title, $this->title, 'manage_options', $this->options_slug, [ $this, 'admin_page_display' ] );
+    }
+
+    public function add_cmb2_boxes() {
+        $this->add_options_metaboxes();
+        $this->add_conference_metaboxes();
     }
 
     /**
@@ -90,6 +98,48 @@ class Admin extends Core {
 			'desc' => 'What is the title?',
 			'type' => 'text',
 			) );
+    }
+
+    public function add_conference_metaboxes() {
+        $prefix = 'conference-';
+
+        $cmb = new_cmb2_box( array(
+            'id'           => 'conference-cpt-options',
+            'title'        => __( 'Options' ),
+            'object_types' => [ 'conference' ],
+            'context'      => 'side',
+            'priority'     => 'low',
+            ) );
+
+        $cmb->add_field( array(
+            'id'      => $prefix . 'year',
+            'name'    => 'Conference Year',
+            'desc'    => 'What is the conference year this page relates to?',
+            'type'    => 'text',
+            'default' => date('Y'),
+            ) );
+    }
+
+    public function filter_unique_post_slug( $slug, $post_ID, $post_status, $post_type ) {
+        if ( 'conference' !== $post_type ) {
+            return $slug;
+        }
+
+        if ( preg_match( '/\d{4}\//', $slug ) || preg_match( '/%[a-z-_]+%/', $slug ) ) {
+            return $slug;
+        }
+
+        $year = get_post_meta( $post_ID, 'conference-year', true ) ?: date( 'Y' );
+
+        return "$year/$slug";
+    }
+
+    public function filter_editable_slug( $post_name, $post ) {
+        if ( 'conference' !== get_post_type( $post ) ) {
+            return $post_name;
+        }
+
+        return preg_replace( '/^\d{4}\//', '', $post_name );
     }
 }
 

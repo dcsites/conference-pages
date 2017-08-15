@@ -12,12 +12,12 @@
 namespace ConferencePages;
 
 define( __NAMESPACE__ . '\SLUG', 'conference-pages' );
-define( __NAMESPACE__ . '\VERSION', '0.1.5' );
+define( __NAMESPACE__ . '\VERSION', '0.1.3' );
 define( __NAMESPACE__ . '\PATH', plugin_dir_path(__FILE__) );
 define( __NAMESPACE__ . '\URL', plugin_dir_url(__FILE__) );
 
-require_once( PATH . 'inc/core.php' );
+require_once( PATH . 'inc/class-core.php' );
 
 if ( is_admin() ) {
-	require_once( PATH . 'inc/admin.php' );
+	require_once( PATH . 'inc/class-admin.php' );
 }

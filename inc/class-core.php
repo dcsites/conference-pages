@@ -25,7 +25,7 @@ class Core {
 		$this->options_slug = SLUG . '-options';
 
 		add_action( 'init', [ $this, 'plugin_update' ], 5 );
-		add_action( 'init', [ $this, 'register_objects' ], 9 );
+		add_action( 'init', [ $this, 'register_conference' ], 9 );
 
 		// add_action( 'init', [ $this, 'debug' ], 9999 );
 	}
@@ -49,14 +49,7 @@ class Core {
 		flush_rewrite_rules();
 	}
 
-	public function register_objects() {
-		// define( 'EP_TAXYEAR', 262144 );
-
-		$this->register_conference();
-		$this->register_year();
-	}
-
-	protected function register_conference() {
+	public function register_conference() {
 
 		$args = array(
 			'capability_type' => [ 'conference', 'conferences' ],
@@ -66,30 +59,17 @@ class Core {
 			'menu_icon'       => 'dashicons-nametag',
 			'rewrite'         => array(
 				'with_front'  => false,
-				// 'ep_mask'     => EP_PERMALINK | EP_TAXYEAR,
 				),
 			);
 
 		$this->register_post_type( 'Conference', $args );
 	}
 
-	protected function register_year() {
-		$args = array(
-			'rewrite'      => array(
-				'slug'     => 'conference',
-				'ep_mask'  => EP_PERMALINK,
-				),
-			'hierarchical' => true,
-			'show_in_rest' => true,
-			);
-
-		$this->register_taxonomy( 'Year', 'conference', $args );
-	}
-
 	protected function register_conference_editor() {
 		$base_args = array(
 			'read'                         => true,
 			'upload_files'                 => true,
+			'edit_post'                    => true,
 			'edit_posts'                   => true,
 			'edit_published_posts'         => true,
 			'delete_posts'                 => true,
@@ -98,10 +78,15 @@ class Core {
 			);
 
 		$args = array(
+			'read_conference'              => true,
+			'read_private_conferences'     => true,
+			'edit_conference'              => true,
 			'edit_conferences'             => true,
+			'edit_others_conferences'      => true,
 			'edit_published_conferences'   => true,
-			'delete_conferences'           => true,
+			'delete_conference'            => true,
 			'delete_published_conferences' => true,
+			'publish_conference'           => true,
 			'publish_conferences'          => true,
 			);
 
@@ -114,7 +99,7 @@ class Core {
 
 		foreach( $role_names as $role_name ) {
 			$role = get_role( $role_name );
-			call_user_func_array( [ $role, 'add_cap' ], array_keys( $args ) );
+			array_map( [ $role, 'add_cap' ], array_keys( $args ) );
 		}
 	}
 
